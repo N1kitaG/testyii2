@@ -38,8 +38,6 @@ class CurrenciesCrawler
             ? CurrenciesValues::getListByDate($this->dateID)
             : CurrenciesValues::setValues($this->dateID, $this->content)
         ;
-
-
     }
 
     /**

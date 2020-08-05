@@ -3,10 +3,13 @@
 namespace app\controllers;
 
 
+use app\models\cases\FindCurrenciesByDate;
 use app\models\cases\RegisterForm;
 use app\models\CurrenciesCrawler;
 use app\models\entities\CurrenciesValues;
+use app\models\entities\Dates;
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
@@ -110,27 +113,34 @@ class SiteController extends Controller
      *
      * @return string
      */
-    public function actionRate()
+    public function actionRate($dateID = null)
     {
         if (Yii::$app->user->isGuest) {
             return $this->redirect(['/login']);
         }
 
-        $crawler = new CurrenciesCrawler();
+        if (!$dateID) {
+            $crawler = new CurrenciesCrawler();
+            $dateID  = $crawler->dateID;
+        }
 
-        $date    = $crawler->date;
-        $dateID  = $crawler->dateID;
+        $date    = Dates::getBy(['id' => $dateID]);
+
+        $dates       =  ArrayHelper::map(Dates::find()->orderBy(['id' => SORT_DESC])->all(), 'id', 'date');
         $dataProvider = new ActiveDataProvider([
             'query' => CurrenciesValues::find()
                 ->select(['currency_id', 'value', 'char', 'nominal', 'name'])
                 ->innerJoin('currencies', 'currencies.id = currencies_values.currency_id')
-                ->where(['date_id' => $dateID])->asArray(),
+                ->where(['date_id' => $dateID])
+                ->asArray(),
             'pagination' => [
                 'pageSize' => 50,
             ],
         ]);
 
-        return $this->render('rate', compact('dataProvider', 'date'));
+        $model = new FindCurrenciesByDate();
+
+        return $this->render('rate', compact('dataProvider', 'date', 'dates', 'model', 'dateID'));
     }
 
     /**
