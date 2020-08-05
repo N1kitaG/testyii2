@@ -124,9 +124,8 @@ class SiteController extends Controller
             $dateID  = $crawler->dateID;
         }
 
-        $date    = Dates::getBy(['id' => $dateID]);
-
-        $dates       =  ArrayHelper::map(Dates::find()->orderBy(['id' => SORT_DESC])->all(), 'id', 'date');
+        $date         = Dates::getBy(['id' => $dateID]);
+        $dates        =  ArrayHelper::map(Dates::find()->orderBy(['id' => SORT_DESC])->all(), 'id', 'date');
         $dataProvider = new ActiveDataProvider([
             'query' => CurrenciesValues::find()
                 ->select(['currency_id', 'value', 'char', 'nominal', 'name'])
