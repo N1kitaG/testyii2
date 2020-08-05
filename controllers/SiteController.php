@@ -2,13 +2,17 @@
 
 namespace app\controllers;
 
+
+use app\models\cases\RegisterForm;
+use app\models\CurrenciesCrawler;
+use app\models\entities\CurrenciesValues;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\web\Response;
 use yii\filters\VerbFilter;
-use app\models\LoginForm;
-use app\models\ContactForm;
+use app\models\cases\LoginForm;
+use yii\data\ActiveDataProvider;
 
 class SiteController extends Controller
 {
@@ -19,7 +23,7 @@ class SiteController extends Controller
     {
         return [
             'access' => [
-                'class' => AccessControl::className(),
+                'class' => AccessControl::class,
                 'only' => ['logout'],
                 'rules' => [
                     [
@@ -30,7 +34,7 @@ class SiteController extends Controller
                 ],
             ],
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'logout' => ['post'],
                 ],
@@ -61,6 +65,10 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
+        if (!Yii::$app->user->isGuest) {
+            return $this->redirect(['/rate']);
+        }
+
         return $this->render('index');
     }
 
@@ -77,13 +85,12 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+
+            return $this->redirect(['/rate']);
         }
 
         $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->render('login', compact('model'));
     }
 
     /**
@@ -99,30 +106,49 @@ class SiteController extends Controller
     }
 
     /**
-     * Displays contact page.
-     *
-     * @return Response|string
-     */
-    public function actionContact()
-    {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
-            Yii::$app->session->setFlash('contactFormSubmitted');
-
-            return $this->refresh();
-        }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Displays about page.
+     * Rate action.
      *
      * @return string
      */
-    public function actionAbout()
+    public function actionRate()
     {
-        return $this->render('about');
+        if (Yii::$app->user->isGuest) {
+            return $this->redirect(['/login']);
+        }
+
+        $crawler = new CurrenciesCrawler();
+
+        $date    = $crawler->date;
+        $dateID  = $crawler->dateID;
+        $dataProvider = new ActiveDataProvider([
+            'query' => CurrenciesValues::find()
+                ->select(['currency_id', 'value', 'char', 'nominal', 'name'])
+                ->innerJoin('currencies', 'currencies.id = currencies_values.currency_id')
+                ->where(['date_id' => $dateID])->asArray(),
+            'pagination' => [
+                'pageSize' => 50,
+            ],
+        ]);
+
+        return $this->render('rate', compact('dataProvider', 'date'));
+    }
+
+    /**
+     * Displays register page.
+     *
+     * @return string
+     */
+    public function actionRegister()
+    {
+        if (!Yii::$app->user->isGuest) {
+            return $this->goHome();
+        }
+
+        $model = new RegisterForm();
+        if ($model->load(Yii::$app->request->post()) && $model->createUser()) {
+            return $this->redirect(['/login']);
+        }
+
+        return $this->render('register', compact('model'));
     }
 }

@@ -7,6 +7,8 @@ use yii\db\Migration;
  */
 class m200804_123853_create_users_table extends Migration
 {
+    const STATUS_ACTIVE = 1;
+
     /**
      * {@inheritdoc}
      */
@@ -17,6 +19,7 @@ class m200804_123853_create_users_table extends Migration
             'login'     => $this->string()->notNull()->unique(),
             'password'  => $this->string()->notNull(),
             'salt'      => $this->string(32)->notNull(),
+            'status'    => $this->integer()->notNull()->defaultValue(1),
         ]);
     }
 

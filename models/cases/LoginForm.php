@@ -1,19 +1,20 @@
 <?php
 
-namespace app\models;
+namespace app\models\cases;
 
 use Yii;
 use yii\base\Model;
+use app\models\entities\Users;
 
 /**
  * LoginForm is the model behind the login form.
  *
- * @property User|null $user This property is read-only.
+ * @property Users|null $user This property is read-only.
  *
  */
 class LoginForm extends Model
 {
-    public $username;
+    public $login;
     public $password;
     public $rememberMe = true;
 
@@ -26,12 +27,21 @@ class LoginForm extends Model
     public function rules()
     {
         return [
-            // username and password are both required
-            [['username', 'password'], 'required'],
-            // rememberMe must be a boolean value
+            [['login', 'password'], 'required'],
             ['rememberMe', 'boolean'],
-            // password is validated by validatePassword()
             ['password', 'validatePassword'],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'login'        => Yii::t('app', Yii::t('app', 'Username')),
+            'password'     => Yii::t('app', Yii::t('app', 'Password')),
+            'rememberMe'   => Yii::t('app', Yii::t('app', 'Remember me')),
         ];
     }
 
@@ -68,12 +78,12 @@ class LoginForm extends Model
     /**
      * Finds user by [[username]]
      *
-     * @return User|null
+     * @return Users|null
      */
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User::findByUsername($this->username);
+            $this->_user = Users::findByUsername($this->login);
         }
 
         return $this->_user;

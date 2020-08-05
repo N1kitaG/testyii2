@@ -7,6 +7,7 @@ $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
+    'language' => 'ru-RU',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -17,8 +18,11 @@ $config = [
             'cookieValidationKey' => 'qeiNbHFVoKqdQO3Srxy7_txMIoYxyFOk',
             'baseUrl'=> '',
         ],
+        'session'=>[
+            'timeout'=>10*365*24*60*60,
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\caching\DummyCache',
         ],
         'user' => [
             'identityClass' => 'app\models\User',
@@ -44,14 +48,30 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
+        'i18n' => [
+            'translations' => [
+                'app*' => [
+                    'class' => 'yii\i18n\PhpMessageSource',
+                    'basePath' => '@app/messages',
+                    'fileMap' => [
+                        'app' => 'app.php',
+                    ]
+                ],
+            ]
+        ],
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
+            'suffix' => '.html',
             'rules' => [
-            ],
-        ],
-        */
+                [
+                    'pattern'=>'/',
+                    'route' => 'site/index',
+                    'suffix' => '',
+                ],
+                '<action:\w+>' => 'site/<action>',
+            ]
+        ]
     ],
     'params' => $params,
 ];
